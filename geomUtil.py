@@ -11,6 +11,58 @@ def pointLineDistance (point, line):
 	numerator = abs(((x2-x1) * (y1-y0)) - ((x1-x0) * (y2-y1)))
 	denominator = math.sqrt(( (x2-x1) * (x2-x1) ) + ( (y2-y1) * (y2-y1) ))
 	return round(numerator / denominator , 5)
+
+def perpendicularPoint(point, line):
+	x0,y0 = point
+	p1, p2, lt = line
+	x1,y1 = p1
+	x2,y2 = p2
+
+
+	pass
+
+def perpendicularLines(l1, l2):
+	print(l1)
+	print(l2)
+	p1, p2,lt = l1
+	p3, p4,lt = l2
+
+	x1, y1 = p1
+	x2, y2 = p2
+
+	x3, y3 = p3
+	x4, y4 = p4
+
+	# slope of line 1
+	dy1 = y2 - y1
+	dx1 = x2 - x1
+
+	# slope of line 2
+	dy2 = y4 - y3
+	dx2 = x4 - x3
+
+	# maybe have leeway here
+	
+
+	# line 1 is flat
+	if dy1 == 0:
+		return True if dx2 == 0 else False
+	# line 2 is flat
+	if dy2 == 0:
+		return True if dx1 == 0 else False
+	# line 1 is vertical
+	if dx1 == 0:
+		return True if dy2 == 0 else False
+	# line 2 is vertical
+	if dx2 == 0:
+		return True if dy1 == 0 else False
+
+	# all edge cases taken care of, now we can compare slopes
+	s1 = dy1/dx1
+	s2 = -dx2/dy2
+
+	return abs(s1-s2) < 0.00001
+
 def distance(point1, point2):
 	retSum = 0
 	for p1, p2 in zip(point1, point2):

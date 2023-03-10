@@ -16,6 +16,17 @@ Started June 2021
 
 # two endpoints,
 
+'''
+3/9/2023 Diagram thought
+Find solution that minimizes number of steps
+
+Eventually we will need to store a list of faces and map lines to the face set
+
+One problem is that multiple folds can accomplish the same amount as one in a different collapsed configuraiotn
+
+perhaps we can naturally find the correct collapsed configuration by searching on the heuristic of minum nunber of steps
+'''
+
 from util import *
 #from geomUtil import *
 from render import *
@@ -29,13 +40,21 @@ When we find a line that we can reach with the currentSet, add it to the current
 
 O(lines ^ 2 maybe lines ^ 3)
 
+TODO: Implememnt the rest of the Huzita Justin Axioms https://langorigami.com/article/huzita-justin-axioms/
+
 # each tuple is a set of colinear lines to be added at once
 [(line 1, line 2) , (line 3), (line4 , line 5, line 6), ...]
 '''
 def bottomUpOrder(lineSet, startSet):
+	print("target set")
 	print(lineSet)
 	# consider storing on the changes, we should be able to piece it together afterwards
 	currentSet = startSet#.copy()
+	print('getSquare')
+	print(currentSet.minX)
+	print(currentSet.maxX)
+	print(currentSet.minY)
+	print(currentSet.maxY)
 	addOrder = []
 	lineOrder = []
 	#print('start')
@@ -51,48 +70,23 @@ def bottomUpOrder(lineSet, startSet):
 		# if we find we can add this line, automatically include all colinear lines
 	i = 0
 	while foldsFound:
-		print(i)
-		print(currentSet.pointSet)
+		print('i:',i)
+		print('current point set:',currentSet.pointSet)
+		print('current line set:', currentSet)
 		i += 1
 		foldsFound = False
 		for line in colinearLines:
-			#print('candiate line: ', line)
-	#while currentSet != lineSet and foldsFound:
-		#print(currentSet)
-		# check the current set, see what line we can add
-		# search again with the new current set until it is the same as the line set
-		# keep track of the order
-		# ideally add all colinear lines at the same time?
-
-			
-		#i = 0
-		#sortOrder = lineSet.getSortOrder()
-		#print(sortOrder)
-		#while i < len(sortOrder):
-			#line = sortOrder[i]
-			#print(lineOrder)
-			#print('candiate line: ', line)
-		#for line in lineSet:
-			
-			
 			p1, p2, lineType = line
-			
 			# skip this line if it already exists
 			if line in currentSet:
 				#i+=1
 				continue
-			#print('candiate line: ', line)
-			#print(len(currentSet))
-			#print(len(addOrder))
-			# if len(addOrder) != prevOrder:
-			# 	print(currentSet)
-			#prevOrder = len(addOrder)
-
 			# first check if the line can be reached with existing points
 			# this likely needs to be revisitied
 			#lineAdded = False
 			checkExistingLine = checkExisting(currentSet, line)
 			if checkExistingLine is not None:
+				print("found connecting existing points")
 				p1, p2 = checkExistingLine
 				foldsFound = True
 				#print('add existing: ', line, ' between: ', p1, p2)
@@ -104,31 +98,12 @@ def bottomUpOrder(lineSet, startSet):
 					#currentSet.add(addLine)
 					addOrder.append(currentSet.copy())
 				lineOrder.append(step)
-				continue
-				# print('checkExisting')
-				# step = [line]
-				# currentSet.add(line)
-				# #lineOrder.append([line])
-				# #print(currentSet)
-				# addOrder.append(currentSet.copy())
-				# #print(len(addOrder))
-				# foldsFound = True
-				# lineAdded = True
-				# i+=1
-				# while i < len(sortOrder) and colinear(line, sortOrder[i]):
-				# 	print('in loop')
-				# 	addOrder.append(currentSet.copy())
-				# 	currentSet.add(sortOrder[i])
-				# 	step.append(sortOrder[i])
-
-				# 	i+=1
-				# lineOrder.append(step)
-				# print('add existing: ', step)
-				# continue
-			
+				break
+				
 			# check if this line can be reached with the current pointset by searching for two perpendicualr bisectors
 			pbPoints = checkPerpendicularBisectors(currentSet, line)
 			if pbPoints is not None:
+				print("found perpendicular bisector")
 				foldsFound = True
 				p1, p2 = pbPoints
 				#print('add perpendicular bisector: ', line, ' between ', p1, p2)
@@ -139,35 +114,14 @@ def bottomUpOrder(lineSet, startSet):
 					#currentSet.add(addLine)
 					addOrder.append(currentSet.copy())
 				lineOrder.append(step)
-				continue
-				# print('check perpendicualr bisectors')
-				# step = [line]
-				# currentSet.add(line)
-				# #step.append(line)
-				# #lineOrder.append(line)
-				# #print(currentSet)
-				# addOrder.append(currentSet.copy())
-				# #print(len(addOrder))
-				# foldsFound = True
-				# lineAdded = True
-				# # add all colinear lines now
-				# i+=1
-				# while i < len(sortOrder) and colinear(line, sortOrder[i]):
-				# 	print('in loop')
-				# 	addOrder.append(currentSet.copy())
-				# 	currentSet.add(sortOrder[i])
-				# 	step.append(sortOrder[i])
-
-				# 	i+=1
-				# lineOrder.append(step)
-				# print('add perpendicularBisectors: ', step)
-				# continue
-
+				break
+				
 			# check if this line can be reached by an existing angle bisector
 			# abLines = None
 			# if i == 1:
 			abLines = checkAngleBisector(currentSet, line)
 			if abLines is not None:
+				print("found angle bisector")
 				foldsFound = True
 				l1, l2 = abLines
 				print('add angle bisector: ', line, 'between ', l1,l2)
@@ -178,41 +132,12 @@ def bottomUpOrder(lineSet, startSet):
 					#currentSet.add(addLine)
 					addOrder.append(currentSet.copy())
 				lineOrder.append(step)
-				continue
-				# print('check angle bisectors')
-				# #print('add angle bisector: ', line)
-				# step = [line]
-				# currentSet.add(line)
-				# #lineOrder.append(line)
-				# #step.append(line)
-				# #print(currentSet)
-				# addOrder.append(currentSet.copy())
-				# foldsFound = True
-				# lineAdded = True
-				# # add all colinear lines now
-				# i+=1
-				# while i < len(sortOrder) and colinear(line, sortOrder[i]):
-				# 	print('in loop')
-				# 	addOrder.append(currentSet.copy())
-				# 	currentSet.add(sortOrder[i])
-				# 	step.append(sortOrder[i])
-
-				# 	i+=1
-				# lineOrder.append(step)
-				# print('add angle bisector: ', step)
-				# continue
-			#i+=1
-			# if not lineAdded:
-			# 	i+=1
-			# continue
+				break
+			#render(currentSet, addOrder, 'progress.png')
+				
 		print('folds found: ',foldsFound)
+		render(currentSet, addOrder, 'progress.png')
 
-	# if currentSet == lineSet:
-	# 	print('finished cp')
-	# else:
-	# 	print('cp incomplete')
-	# for key in currentSet.getSortOrder().keys():
-	# 	print(key)
 	return addOrder, lineOrder
 
 # check shortest distance to this line and all points in point set
@@ -230,10 +155,7 @@ def checkExisting(lineSet, line):
 			else:
 				first=point
 	return None
-	# check if any two points in the point set exist on the line
-	# p1, p2, lineType = line
-	# return p1 in lineSet.getPointSet() and p2 in lineSet.getPointSet()
-	#return (p1,p2, lineType) in lineSet #or (p2,p1, lineType) in lineSet
+
 
 
 '''
@@ -323,12 +245,19 @@ def checkBisectors(pointSet, line):
 
 
 '''
-Check if we can reach line on the current lineSet by searching for two equidistance perpendicular points,
+Check if we can reach line on the current lineSet by searching for two equidistant perpendicular points,
 points must exist on an existing perpendicular line
 
 maybe want to return the points we are using to bisect
 
 # don't actually need to be on perpendicual lines, just need to be perpendicular relative to each other and the line
+# not sure why I mean but this but the two points must be on a line, we are making a fold to make two points on the same point
+
+# we should check the distance and slope to each point in the point set, in theory, the line set should yield the same points as the point set
+# 
+
+
+'''
 '''
 def checkPerpendicularBisectors(lineSet, line):
 	p1, p2, lt = line
@@ -354,16 +283,50 @@ def checkPerpendicularBisectors(lineSet, line):
 		if slope == checkSlope:
 			checkDistance = pointLineDistance(cp1, line)
 			if checkDistance in pointDistance:
+				print(line, 'perpendicualr to ', cp1, pointDistance[checkDistance])
+				print(J)
 				return (pointDistance[checkDistance], cp1) 
 			else:
-				pointDistance[checkDistance] = line
+				pointDistance[checkDistance] = cp1
 
 			checkDistance = pointLineDistance(cp2, line)
 			if checkDistance in pointDistance:
+				print(line, 'perpendicualr to ', cp2, pointDistance[checkDistance])
+				print(j)
 				return (pointDistance[checkDistance], cp2)
 			else:
-				pointDistance[checkDistance] = line
+				pointDistance[checkDistance] = cp2
 	return None
+'''
+
+def checkPerpendicularBisectors(lineSet, line):
+
+	'''
+	check the distnace and slope to every point in the point set
+	if two distances matchw with opposite slope, we can form a perpendicular bisector between these points
+	'''
+	pointDistance = {} # distance : point,slope
+	for point in lineSet.pointSet:
+		# get the shortest distance from the point to the line
+		# get the point on the line from the perpendicular distance to the line from the point
+		cd = pointLineDistance (point, line)
+		if cd not in pointDistance:
+			pointDistance[cd] = [point]
+		else:
+			# check if the slope formed by the two points
+			# if it is perpendicular to the current line slope, return the two points
+
+			# line slope
+
+			for p in pointDistance[cd]:
+				#print('check:',Line(point, p,1), line)
+				if perpendicularLines(Line(point, p,1), line):
+					print(line,'is a perpendicular bisector of ',point,p, 'distance:',cd)
+					print(pointDistance)
+					return (point,p)
+
+	return None
+
 
 '''
 Look for angle bisectors
@@ -488,17 +451,31 @@ def test():
 
 def createDiagrams(pathToCP, pathToDiagrams=''):
 
+	# create the target set
 	targetSet = cpToLineSet(pathToCP)
-	#print('targetSet')
-	#print(targetSet)
-	print('square')
-	print(targetSet.minX, targetSet.maxX,targetSet.minY, targetSet.maxY)
-	print('keys')
-	print(targetSet.sortOrder.keys())
+
+	# intialize the start set with a square
 	startSet = getSquare(targetSet)
 	lineSetProgression, lineOrder = bottomUpOrder(targetSet, startSet)
 	#render(lineSetProgression, lineOrder,pathToDiagrams)
 	if pathToDiagrams == '':
 		pathToDiagrams = pathToCP.split('.')[0] + '.png'
 	render(targetSet,lineOrder,pathToDiagrams)
-createDiagrams('boxpleat_16.cp')
+
+
+if __name__=='__main__':
+
+	createDiagrams('boxpleat_8_gt.cp')
+	#createDiagrams('square_rabbit_ear.cp')
+
+
+'''
+Current set needs to add entire line and only gets to use intersections as future references
+
+
+One way is to make the target set the set of lines that intersect with the edges of the square
+and just render the parts you need to fold
+
+
+Target set can just be a set of start and end points, 
+'''
