@@ -65,9 +65,10 @@ def renderNext(lineSet, square, nextLine):
 '''
 Use this to draw the final crease pattern
 '''
-def drawLineSet(lineSet, square):
+def drawLineSet(square, lineSet):
+	#print(lineSet)
 	for line in lineSet:
-		#print(line)
+		#print('line:',line)
 		p1, p2, lineType = line
 		x1,y1 = p1
 		x2,y2 = p2
