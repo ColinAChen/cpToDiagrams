@@ -26,7 +26,15 @@ One problem is that multiple folds can accomplish the same amount as one in a di
 
 perhaps we can naturally find the correct collapsed configuration by searching on the heuristic of minum nunber of steps
 '''
-
+'''
+3/10/2023 Search thought
+Specify search depth
+This should give the program leeway to add lines that may help us reach new creases
+Current problem is that we only continue while we can reach new creases from the immediate step
+However, some crease patterns won't specify references
+I think we can do the reference finder method where we just search with smart heuristics
+'''
+import argparse
 from util import *
 #from geomUtil import *
 from render import *
@@ -50,11 +58,11 @@ def bottomUpOrder(lineSet, startSet):
 	print(lineSet)
 	# consider storing on the changes, we should be able to piece it together afterwards
 	currentSet = startSet#.copy()
-	print('getSquare')
-	print(currentSet.minX)
-	print(currentSet.maxX)
-	print(currentSet.minY)
-	print(currentSet.maxY)
+	# print('getSquare')
+	# print(currentSet.minX)
+	# print(currentSet.maxX)
+	# print(currentSet.minY)
+	# print(currentSet.maxY)
 	addOrder = []
 	lineOrder = []
 	#print('start')
@@ -136,7 +144,7 @@ def bottomUpOrder(lineSet, startSet):
 			#render(currentSet, addOrder, 'progress.png')
 				
 		print('folds found: ',foldsFound)
-		render(currentSet, addOrder, 'progress.png')
+		#render(currentSet, addOrder, 'progress.png')
 
 	return addOrder, lineOrder
 
@@ -249,54 +257,8 @@ Check if we can reach line on the current lineSet by searching for two equidista
 points must exist on an existing perpendicular line
 
 maybe want to return the points we are using to bisect
+This is a good idea, I can use them for rendering later
 
-# don't actually need to be on perpendicual lines, just need to be perpendicular relative to each other and the line
-# not sure why I mean but this but the two points must be on a line, we are making a fold to make two points on the same point
-
-# we should check the distance and slope to each point in the point set, in theory, the line set should yield the same points as the point set
-# 
-
-
-'''
-'''
-def checkPerpendicularBisectors(lineSet, line):
-	p1, p2, lt = line
-	x1, y1 = p1
-	x2, y2 = p2
-	dy = y2-y1
-	dx = x2-x1
-	slope = None if dx == 0 else dy/dx
-	# if dx == 0:
-	# 	slope = None
-	# else:
-	# 	slope = dy/dx
-	pointDistance = {} # distance : point
-	# perpendicular if dy/dx == -cdx/cdy
-	for checkLine in lineSet:
-		cp1, cp2, clt = checkLine
-		cx1, cy1 = cp1
-		cx2, cy2 = cp2
-		cdy = cy2 - cy1
-		cdx = cx2 - cx1
-		checkSlope = None if cdy == 0 else -cdx/cdy
-		# only check the distance if the point exists on a line perpendicualr to the candiate line
-		if slope == checkSlope:
-			checkDistance = pointLineDistance(cp1, line)
-			if checkDistance in pointDistance:
-				print(line, 'perpendicualr to ', cp1, pointDistance[checkDistance])
-				print(J)
-				return (pointDistance[checkDistance], cp1) 
-			else:
-				pointDistance[checkDistance] = cp1
-
-			checkDistance = pointLineDistance(cp2, line)
-			if checkDistance in pointDistance:
-				print(line, 'perpendicualr to ', cp2, pointDistance[checkDistance])
-				print(j)
-				return (pointDistance[checkDistance], cp2)
-			else:
-				pointDistance[checkDistance] = cp2
-	return None
 '''
 
 def checkPerpendicularBisectors(lineSet, line):
@@ -459,15 +421,21 @@ def createDiagrams(pathToCP, pathToDiagrams=''):
 	lineSetProgression, lineOrder = bottomUpOrder(targetSet, startSet)
 	#render(lineSetProgression, lineOrder,pathToDiagrams)
 	if pathToDiagrams == '':
-		pathToDiagrams = pathToCP.split('.')[0] + '.png'
+		pathToDiagrams = 'diagrams/' + pathToCP.split('.')[0] + '.png'
 	render(targetSet,lineOrder,pathToDiagrams)
 
 
 if __name__=='__main__':
+	parser = argparse.ArgumentParser(description='Choose an input crease pattern')
+	parser.add_argument('pathToCp', type=str, help='path to image of crease pattern')
+	parser.add_argument('-s','--pathToDiagrams', type=str, default='', help='path to save diagrams to')
+	args = parser.parse_args()
 
-	createDiagrams('boxpleat_8_gt.cp')
+	#main(args)
+
+	#createDiagrams('chess_knight.cp')
 	#createDiagrams('square_rabbit_ear.cp')
-
+	createDiagrams(args.pathToCp, args.pathToDiagrams)
 
 '''
 Current set needs to add entire line and only gets to use intersections as future references
