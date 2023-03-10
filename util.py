@@ -45,7 +45,7 @@ class Line():
 		return self.lineType
 
 class LineSet():
-	def __init__(self):
+	def __init__(self, target=False):
 		self.lineSet = set()
 		self.pointSet = set()
 		self.minX = None
@@ -53,6 +53,7 @@ class LineSet():
 		self.maxX = None
 		self.maxY = None
 		self.sortOrder = {}
+		self.target = target
 		# consider grouping colinear lines together? {interection with the edge of the square? endpoints? : colinear lines}
 		#self.lineDict = {} # line to lineType lookup
 	def __repr__(self):
@@ -64,16 +65,19 @@ class LineSet():
 		return out
 	def __contains__(self, check):
 		if type(check) ==  type(Line((0,1),(1,0),1)):
-			return check in self.lineSet
+			#return check in self.lineSet
+			return self.edgeToEdge(check) in self.lineSet
 		elif len(check) == 2:
-			# hopeflly this is a point
+			# hopefully this is a point
 			return check in self.pointSet
 	def __iter__(self):
 		# consider sorting by colinearity so we can combine steps at the end
 		#return iter(self.lineSet)
 		return iter(self.sortOrder)
 	def copy(self):
-		outSet = LineSet()
+		# assume that everything in here so far has been extended edge to edge
+		# actually we only really copy when we are adding a step to the diagrams to be rendered
+		outSet = LineSet(target=True)
 		for line in self:
 			outSet.add(line)
 		return outSet
@@ -84,6 +88,15 @@ class LineSet():
 			if line not in checkSet:
 				return 
 	def add(self, line):
+		if not self.target:
+			# if this is the target set,
+			print("add segment",line)	
+			line = self.edgeToEdge(line)
+			print("not target set, add",line)
+
+		#print('get line:', line)
+		#line = self.edgeToEdge(line)
+		#print('edge to edge: ', line)
 		# if a line with different type replace it
 		#line = Line(point1, point2, lineType)
 		#lineType = line.getLineType()
@@ -99,8 +112,29 @@ class LineSet():
 		# 		#self.sortOrder.insert(i, line)
 		# 		#added=True
 		# 		addIndex = i
+
+		# when we add to the current set, we need to add the whole line instead of segments
+		# the only segments we get will be created from intersections.
+		# The line set and point set will be used to determine which new lines are reachable
+
+
+		'''
+		3/9/2023 experiment
+		Create a new real set that will represent the actual folds on the paper
+		Assume that we fold from edge to edge
+		When we add a line, add the entire edge to edge line
+		Use the real set when determining which new lines we can reach
+		Maybe we can keep the current set for rendering
+		Down the line you might need to keep track of which non visible auxilary lines you are using as a refernece
+		
+		There needs to be some difference when creating the target set and creating the real set
+		The target set needs to be able to go through each line, while the real set already knows this
+		'''
+
+		# add line segments for rendering
 		foundColinear = False
 		for checkLine in self.sortOrder:
+			#print(checkLine, line)
 			if colinear(checkLine, line):
 				foundColinear = True
 				self.sortOrder[checkLine].append(line)
@@ -112,6 +146,8 @@ class LineSet():
 		if not foundColinear:
 			# no colinear lines, initialize so that we can find others later
 			self.sortOrder[line] = [line]
+
+
 		#if not added:
 		#self.sortOrder.insert(addIndex, line)
 		#print(self.sortOrder)
@@ -147,6 +183,12 @@ class LineSet():
 				self.minY = y
 			if self.maxY is None or y > self.maxY:
 				self.maxY = y
+
+		if not self.target:
+			for p in self.pointSet:
+				print(p)
+			#print(self.pointSet)
+			print('')
 		#if line in lineDict:
 		#lineDict[line] = lineType
 
@@ -187,12 +229,76 @@ class LineSet():
 			return Line((minX, minY), (maxX, maxY), lt)
 		return Line((minX, maxY), (maxX, minY), lt)
 	def pointInSquare(self,point):
+		'''
+		True if point is in self.square, False otherwise
+
+		Lines may intersect outside the square, we only care if they intersect within the square
+		'''
 		if point is None:
 			return False
 		x,y = point
 		# print(point, (self.minX, self.minY, self.maxX, self.maxY))
 		# print(x >= self.minX, x <=self.maxX, y >=self.minY, y <= self.maxY)
 		return x >= self.minX and x <= self.maxX and y >= self.minY and y <= self.maxY
+
+	def edgeToEdge(self, line):
+		if self.minX is None or self.maxX is None or self.minY is None or self.maxY is None:
+			print('bounds not set')
+			return None
+		#print("edge to edge of:",line)
+		# get the edge to edge endpoints of a line
+		# get the slope
+		# solve for x = 0, x = square length, y = 0, y = square length
+		# solutions are 0 <= s <= square length
+
+		# y = ax + b
+		# x = (y-b)/a
+		# edge case is slope = infinity (vertical line)
+		# simply return (x1, 0), (x1, square length)
+		p1, p2, lt = line
+		x1, y1 = p1
+		x2, y2 = p2
+		dy = y2 - y1
+		dx = x2 - x1
+		if dx == 0:
+			# edge case, slope will be infinity
+			# TODO maybe change this to close to 0 to accomodate imprecise points
+			r1 = (x1, self.minY)
+			r2 = (x1, self.maxY)
+			return Line(r1, r2, lt)
+		if dy == 0:
+			# edge case, slope is 0
+			r1 = (self.minX, y1)
+			r2 = (self.maxX, y1)
+			return Line(r1, r2, lt)
+		# calculate point slope form
+		a = dy / dx
+		b = y2 - (a * x2)
+		
+		candidates = []
+		# solve for min and max x
+		sy1 = (a * self.minX) + b
+		sy2 = (a * self.maxX) + b
+		candidates.append((self.minX, sy1))
+		candidates.append((self.maxX, sy2))
+
+		# solve for min and max y
+		sx1 = (self.minY - b) / a
+		sx2 = (self.maxY - b) / a
+		candidates.append((sx1, self.minY))
+		candidates.append((sx2, self.maxY))
+
+		# actual point solutions
+		# select two points that fall within the square
+		solution = []
+		for c in candidates:
+			cx, cy = c
+			if cx >= self.minX and cx <= self.maxX and cy >= self.minY and cy <= self.maxY:
+				solution.append(c)
+		#print('solution: ', Line(solution[0], solution[1], lt))
+		return Line(solution[0], solution[1], lt)
+
+		# use these solutions to solve for the other coordinates in the 
 def lineSetToCP(lineSet, pathToCP):
 	# (linetype: 1.Contour, 2.Mountain, 3.Valley) (start x) (start y) (end x) (end y)
 	with open(pathToCP, 'w+') as writeFile:
@@ -204,7 +310,7 @@ def lineSetToCP(lineSet, pathToCP):
 			writeLine = str(lineType) + ' ' + str(x1) + ' ' + str(y1) + ' ' + str(x2) + ' ' + str(y2) + '\n'
 			writeFile.write(writeLine)
 def cpToLineSet(pathToCP):
-	lineSet = LineSet()
+	lineSet = LineSet(target=True)
 	with open (pathToCP) as readFile:
 		lines = readFile.readlines()
 	#print(lines)
@@ -252,11 +358,12 @@ def getSquare(lineSet):
 	bottom = Line((minX, maxY), (maxX, maxY), CONTOUR)
 	left = Line((minX, minY), (minX, maxY), CONTOUR)
 	right = Line((maxX, minY), (maxX, maxY), CONTOUR)
-	retLineSet = LineSet()
+	retLineSet = LineSet(target=True)
 	retLineSet.add(top)
 	retLineSet.add(bottom)
 	retLineSet.add(left)
 	retLineSet.add(right)
+	retLineSet.target = False
 	return retLineSet
 def createSteps(order, pathToSteps):
 	for i,lineSet in enumerate(order):
