@@ -90,33 +90,9 @@ class LineSet():
 	def add(self, line):
 		if not self.target:
 			# if this is the target set,
-			print("add segment",line)	
+			#print("add segment",line)	
 			line = self.edgeToEdge(line)
-			print("not target set, add",line)
-
-		#print('get line:', line)
-		#line = self.edgeToEdge(line)
-		#print('edge to edge: ', line)
-		# if a line with different type replace it
-		#line = Line(point1, point2, lineType)
-		#lineType = line.getLineType()
-		# check if this line is colinear with any lines
-		# this will determine the insertion order
-
-		# addIndex = 0
-		# for i,checkColinear in enumerate(self.sortOrder):
-		# 	if checkColinear == line:
-		# 		continue
-		# 	if colinear(checkColinear, line):
-		# 		# insert here to be grouped with other colinear lines
-		# 		#self.sortOrder.insert(i, line)
-		# 		#added=True
-		# 		addIndex = i
-
-		# when we add to the current set, we need to add the whole line instead of segments
-		# the only segments we get will be created from intersections.
-		# The line set and point set will be used to determine which new lines are reachable
-
+			#print("not target set, add",line)
 
 		'''
 		3/9/2023 experiment
@@ -185,17 +161,11 @@ class LineSet():
 				self.maxY = y
 
 		if not self.target:
-			for p in self.pointSet:
-				print(p)
-			#print(self.pointSet)
-			print('')
-		#if line in lineDict:
-		#lineDict[line] = lineType
-
-		# maybe need to replace lines that are colinear since lines must be divided into line segments
-
-		# maybe add all intersections to point set
-		
+			pass
+			# for p in self.pointSet:
+			# 	print(p)
+			# #print(self.pointSet)
+			# print('')
 
 	# def getList(self):
 	# 	retList = []
