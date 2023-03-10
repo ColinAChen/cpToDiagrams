@@ -5,6 +5,8 @@ Start with a blank square and iteratively add creases using known rules until al
 
 There may be some utility in creating such a guide for solving crease patterns. However, I currently have plans to use this as a tool for other projects. I hope the framework of searching for valid creases using known rules may help resolve some of the ambiguity I encountered when trying to convert an image into a crease pattern. Being able to handle more ambiguity in converting an image into a crease pattern may eventually allow natural images (photo of a crease pattern) to be converted into crease patterns. The end goal is to implement a useful diagram creator that keeps track of the collapsed form. The pipeline could then be natural image -> crease pattern -> diagrams which I believe would help many fold models that might otherwise be inaccessible.
 
+![frog diagrams](diagrams/frog.png)
+
 ### Usage
 `python diagramSearch.py path/To/CreasePattern.cp`
 
